@@ -2,35 +2,40 @@
 name: Build Levi SmoothSwitch
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source
+      - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Extract source
+        run: |
+          unzip LeviSmoothSwitch-source.zip -d source
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install build dependencies
+      - name: Install dependencies
         run: |
           sdkmanager "platforms;android-28" "ndk;28.2.13676358"
           sudo apt-get update
           sudo apt-get install -y ninja-build
 
-      - name: Build LeviPack
+      - name: Build ARM64 LeviPack
         shell: pwsh
-        run: ./scripts/package.ps1 -Abi all
+        working-directory: source/LeviSmoothSwitch
+        run: ./scripts/package.ps1 -Abi arm64-v8a
 
-      - name: Upload LeviPack
+      - name: Upload build
         uses: actions/upload-artifact@v4
         with:
           name: LeviSmoothSwitch
-          path: build-*/*.levipack
+          path: source/LeviSmoothSwitch/build-arm64-v8a/*.levipack
           if-no-files-found: error
+          
